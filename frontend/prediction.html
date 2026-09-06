@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prediction — MLForge</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 3rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(99,102,241,0.04);
+    }
+    .upload-zone .uz-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .upload-zone p { color: var(--muted); font-size: 0.88rem; }
+    .upload-zone strong { color: var(--accent-hover); }
+
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+    }
+    #preview-img {
+      max-width: 160px;
+      max-height: 160px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      image-rendering: pixelated;
+    }
+
+    .prediction-result {
+      text-align: center;
+      padding: 1.5rem;
+    }
+    .prediction-result .pred-class {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--accent-hover);
+      font-family: var(--mono);
+    }
+    .prediction-result .pred-confidence {
+      font-size: 1.2rem;
+      color: var(--success);
+      font-weight: 700;
+      margin-top: 0.3rem;
+    }
+    .prediction-result .pred-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    .prob-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+    .prob-bar-label {
+      width: 60px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text);
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .prob-bar-track {
+      flex: 1;
+      height: 20px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .prob-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    .prob-bar-fill.top { background: var(--success); }
+    .prob-bar-pct {
+      width: 48px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .pred-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 700px) { .pred-layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="app-layout">
+  <div id="nav-container"></div>
+
+  <main class="page-content">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="index.html">MLForge</a> › <a href="evaluation.html">Evaluation</a> › Prediction</div>
+      <h1>Make a Prediction</h1>
+      <p>Upload an image and your trained model will predict its class.</p>
+    </div>
+
+    <div id="no-model" class="alert alert-warning" style="display:none">
+      <span class="alert-icon">⚠️</span>
+      No trained model available. Please <a href="training.html">train a model</a> first.
+    </div>
+
+    <div id="pred-content">
+      <div class="pred-layout">
+        <!-- Upload panel -->
+        <div>
+          <div class="card">
+            <div class="card-title"><span class="icon">📤</span> Upload Image</div>
+            <div class="upload-zone" id="upload-zone"
+                 onclick="document.getElementById('file-input').click()"
+                 ondragover="handleDragOver(event)"
+                 ondragleave="handleDragLeave(event)"
+                 ondrop="handleDrop(event)">
+              <div class="uz-icon">🖼️</div>
+              <p><strong>Click to upload</strong> or drag and drop</p>
+              <p class="mt-1">PNG, JPG, or BMP — any size (will be resized automatically)</p>
+            </div>
+            <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+
+            <div id="preview-section" style="display:none">
+              <div class="preview-container">
+                <img id="preview-img" alt="Preview">
+                <div class="text-xs text-muted" id="img-info"></div>
+              </div>
+              <div class="flex gap-2 mt-2">
+                <button class="btn btn-primary w-full" id="predict-btn" onclick="runPrediction()">
+                  🔮 Run Prediction
+                </button>
+                <button class="btn btn-secondary btn-icon" onclick="clearImage()" title="Remove image">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-2">
+            <div class="card-title"><span class="icon">ℹ️</span> Model Info</div>
+            <div id="model-context" class="text-sm text-muted"></div>
+          </div>
+
+          <div class="alert alert-warning mt-2">
+            <span class="alert-icon">⚠️</span>
+            <span>Predictions are experimental. Confidence depends on your training configuration and dataset.
+            Do not use for professional or safety-critical decisions.</span>
+          </div>
+        </div>
+
+        <!-- Results panel -->
+        <div id="result-panel" style="display:none">
+          <div class="card">
+            <div class="card-title"><span class="icon">🔮</span> Prediction Result</div>
+            <div id="pred-result-area"></div>
+          </div>
+
+          <div class="card mt-2">
+            <div class="card-title"><span class="icon">📊</span> Class Probabilities</div>
+            <div id="prob-bars"></div>
+          </div>
+
+          <div class="explain-box mt-2">
+            <strong>How to read this:</strong> The model assigns a probability to each possible class.
+            The predicted class is the one with the highest probability.
+            A high confidence (e.g. &gt;95%) suggests the model is sure — but it can still be wrong if the image differs
+            significantly from the training distribution.
+          </div>
+        </div>
+
+        <!-- Placeholder when no result -->
+        <div id="result-placeholder" class="card flex-center" style="min-height:300px">
+          <div style="text-align:center;color:var(--muted)">
+            <div style="font-size:2.5rem;margin-bottom:0.75rem">🔮</div>
+            <p class="text-sm">Upload an image to see the prediction.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-actions">
+      <a href="evaluation.html" class="btn btn-secondary">← Evaluation</a>
+      <a href="export.html" class="btn btn-primary">Next: Export →</a>
+    </div>
+  </main>
+
+  <script src="js/mlforge.js"></script>
+  <script src="js/prediction.js"></script>
+</body>
+</html>

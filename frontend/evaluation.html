@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evaluation — MLForge</title>
+  <link rel="stylesheet" href="css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+    .metric-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      text-align: center;
+    }
+    .metric-card .mc-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-weight: 600;
+    }
+    .metric-card .mc-value {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0.25rem 0;
+      font-family: var(--mono);
+    }
+    .metric-card .mc-explain {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* Confusion matrix */
+    .cm-table {
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+    }
+    .cm-table th, .cm-table td {
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.65rem;
+      text-align: center;
+      min-width: 42px;
+    }
+    .cm-table th { background: var(--surface2); color: var(--muted); font-size: 0.72rem; }
+    .cm-cell-high   { background: rgba(99,102,241,0.5); color: #fff; font-weight: 700; }
+    .cm-cell-med    { background: rgba(99,102,241,0.25); color: var(--text); }
+    .cm-cell-low    { background: rgba(99,102,241,0.07); color: var(--muted); }
+    .cm-cell-zero   { color: var(--border); }
+
+    .per-class-table { font-size: 0.85rem; }
+
+    .eval-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 700px) { .eval-layout { grid-template-columns: 1fr; } }
+
+    .disclaimer-box {
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: var(--radius-sm);
+      padding: 0.8rem 1rem;
+      font-size: 0.8rem;
+      color: #fcd07f;
+    }
+  </style>
+</head>
+<body class="app-layout">
+  <div id="nav-container"></div>
+
+  <main class="page-content">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="index.html">MLForge</a> › <a href="training.html">Training</a> › Evaluation</div>
+      <h1>Model Evaluation</h1>
+      <p>How well did your model perform? Evaluate the results on the test set.</p>
+    </div>
+
+    <div id="no-results" class="alert alert-warning" style="display:none">
+      <span class="alert-icon">⚠️</span>
+      No training results available. Please <a href="training.html">train a model</a> first.
+    </div>
+
+    <div id="eval-content">
+      <!-- Overview metrics -->
+      <div class="card">
+        <div class="card-title"><span class="icon">📊</span> Test Set Performance</div>
+        <div class="metrics-grid" id="metrics-grid"></div>
+        <div class="disclaimer-box mt-2">
+          <strong>⚠️ Educational Disclaimer:</strong> These are real results from training on the selected dataset.
+          Results depend entirely on your model architecture, training configuration, and selected classes.
+          Do not use these metrics to make professional decisions.
+        </div>
+      </div>
+
+      <!-- Training curves repeat -->
+      <div class="eval-layout mt-2">
+        <div class="card">
+          <div class="card-title"><span class="icon">📈</span> Accuracy Curve</div>
+          <div style="position:relative;height:220px"><canvas id="acc-chart"></canvas></div>
+          <div class="explain-box mt-2">
+            <strong>Accuracy:</strong> The fraction of predictions that were correct.
+            Watch for a gap between training and validation accuracy — a large gap suggests overfitting.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📉</span> Loss Curve</div>
+          <div style="position:relative;height:220px"><canvas id="loss-chart"></canvas></div>
+          <div class="explain-box mt-2">
+            <strong>Loss:</strong> How wrong the model's predictions were, on average.
+            Lower is better. Validation loss rising while training loss falls = overfitting.
+          </div>
+        </div>
+      </div>
+
+      <!-- Confusion matrix + per-class -->
+      <div class="eval-layout mt-2">
+        <div class="card">
+          <div class="card-title"><span class="icon">🧩</span> Confusion Matrix</div>
+          <div style="overflow-x:auto" id="cm-container">
+            <p class="text-muted text-sm">Loading…</p>
+          </div>
+          <div class="explain-box mt-2">
+            <strong>Confusion Matrix:</strong> Each row is the true class; each column is what the model predicted.
+            Diagonal cells (top-left to bottom-right) are correct predictions. Off-diagonal cells are errors.
+            Bright cells indicate high counts.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📋</span> Per-Class Metrics</div>
+          <div id="per-class-container">
+            <p class="text-muted text-sm">Loading…</p>
+          </div>
+          <div class="explain-box mt-2">
+            <strong>Precision:</strong> Of all predictions for a class, how many were actually that class?<br>
+            <strong>Recall:</strong> Of all actual samples in a class, how many did the model find?<br>
+            <strong>F1:</strong> Harmonic mean of precision and recall — useful when classes are imbalanced.
+          </div>
+        </div>
+      </div>
+
+      <!-- Model info -->
+      <div class="card mt-2">
+        <div class="card-title"><span class="icon">🧠</span> Model Information</div>
+        <div id="model-info-grid" class="stat-grid"></div>
+        <div class="explain-box mt-2">
+          <strong>Why parameters matter:</strong> A model with many parameters can learn complex patterns but also tends to overfit and
+          requires more data and compute. For MNIST (28×28 grayscale), a relatively small model often suffices.
+        </div>
+      </div>
+    </div>
+
+    <div class="step-actions">
+      <a href="training.html" class="btn btn-secondary">← Retrain</a>
+      <a href="prediction.html" class="btn btn-primary">Next: Predict →</a>
+    </div>
+  </main>
+
+  <script src="js/mlforge.js"></script>
+  <script src="js/evaluation.js"></script>
+</body>
+</html>

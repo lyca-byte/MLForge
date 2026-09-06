@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dataset — MLForge</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .dataset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .dataset-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .dataset-card:hover { border-color: var(--accent); }
+    .dataset-card.selected { border-color: var(--accent); background: rgba(99,102,241,0.07); }
+    .dataset-card.disabled { opacity: 0.4; cursor: not-allowed; }
+    .dataset-card .ds-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .dataset-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .dataset-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+    .dataset-card .ds-badge { margin-top: 0.6rem; }
+
+    .task-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .task-option {
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .task-option:hover { border-color: var(--accent); }
+    .task-option.selected { border-color: var(--accent); background: rgba(99,102,241,0.07); }
+    .task-option h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .task-option p { font-size: 0.78rem; color: var(--muted); }
+
+    .class-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .class-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.75rem;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 99px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+      color: var(--muted);
+    }
+    .class-chip:hover { border-color: var(--accent); color: var(--text); }
+    .class-chip.selected { border-color: var(--accent); background: rgba(99,102,241,0.12); color: var(--accent-hover); }
+    .class-chip.disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .ds-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+    .ds-info-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 0.9rem;
+    }
+    .ds-info-item .di-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .ds-info-item .di-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 0.15rem;
+    }
+
+    .sample-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .sample-img-placeholder {
+      width: 36px;
+      height: 36px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="app-layout">
+  <div id="nav-container"></div>
+
+  <main class="page-content">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="index.html">MLForge</a> › Dataset Selection</div>
+      <h1>Choose Your Dataset</h1>
+      <p>Select a dataset to train your model on. Each dataset comes with predefined classes and image dimensions.</p>
+    </div>
+
+    <!-- Step 1: Choose Dataset -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🗄️</span> Available Datasets</div>
+      <div class="dataset-grid" id="dataset-grid">
+        <!-- rendered by JS -->
+      </div>
+      <div class="explain-box">
+        <strong>What is a dataset?</strong> A dataset is a large collection of labeled examples used to teach a model.
+        MNIST contains 70,000 images of handwritten digits (0–9), each 28×28 pixels in grayscale.
+        The model learns patterns from the training split and is evaluated on the test split it has never seen.
+      </div>
+    </div>
+
+    <!-- Step 2: Classification Task -->
+    <div class="card" id="task-card" style="display:none">
+      <div class="card-title"><span class="icon">🎯</span> Classification Task</div>
+      <div class="task-selector">
+        <div class="task-option" id="task-binary" onclick="selectTask('binary')">
+          <h4>Binary Classification</h4>
+          <p>Distinguish exactly <strong>2</strong> classes. The model outputs a single probability.</p>
+        </div>
+        <div class="task-option" id="task-multi" onclick="selectTask('multiclass')">
+          <h4>Multiclass Classification</h4>
+          <p>Distinguish <strong>3 or more</strong> classes using softmax output.</p>
+        </div>
+      </div>
+      <div class="explain-box mt-2">
+        <strong>Binary vs Multiclass:</strong> In binary classification the model outputs one probability (e.g. "Is this a 3 or a 7?").
+        In multiclass classification the model outputs a probability for every class and predicts the highest one (e.g. "Which digit 0–9 is this?").
+      </div>
+    </div>
+
+    <!-- Step 3: Select Classes -->
+    <div class="card" id="classes-card" style="display:none">
+      <div class="card-title">
+        <span class="icon">🔢</span> Select Classes
+        <span class="badge badge-muted ml-auto" id="class-count-badge" style="margin-left:auto">0 selected</span>
+      </div>
+      <p class="text-sm text-muted mb-2" id="class-instruction">Select exactly 2 classes for binary classification.</p>
+      <div class="class-picker" id="class-picker"></div>
+      <div id="class-validation" class="alert alert-warning mt-2" style="display:none">
+        <span class="alert-icon">⚠️</span>
+        <span id="class-validation-msg"></span>
+      </div>
+    </div>
+
+    <!-- Step 4: Dataset Summary -->
+    <div class="card" id="summary-card" style="display:none">
+      <div class="card-title"><span class="icon">📋</span> Dataset Summary</div>
+      <div class="ds-info-grid" id="ds-summary-grid"></div>
+      <div class="mt-2">
+        <div class="flex-between mb-1">
+          <span class="text-sm text-muted">Sample Images (digit representations)</span>
+        </div>
+        <div class="sample-grid" id="sample-grid"></div>
+      </div>
+    </div>
+
+    <div class="step-actions">
+      <div></div>
+      <button class="btn btn-primary" id="next-btn" disabled onclick="goNext()">
+        Next: Build Model →
+      </button>
+    </div>
+  </main>
+
+  <script src="js/mlforge.js"></script>
+  <script src="js/dataset.js"></script>
+</body>
+</html>

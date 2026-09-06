@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training — MLForge</title>
+  <link rel="stylesheet" href="css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    .training-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    @media (max-width: 750px) { .training-layout { grid-template-columns: 1fr; } }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.25rem;
+    }
+    .status-bar .status-indicator {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .status-bar .status-label { font-weight: 700; font-size: 0.9rem; }
+    .status-bar .status-detail { color: var(--muted); font-size: 0.82rem; }
+    .status-bar .status-spinner { margin-left: auto; }
+
+    .epoch-progress {
+      margin-top: 0.75rem;
+    }
+    .epoch-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 0.4rem;
+    }
+    .epoch-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    .metric-live {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    .metric-live-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+    }
+    .metric-live-item .ml-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .metric-live-item .ml-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+      font-family: var(--mono);
+    }
+
+    .chart-container {
+      position: relative;
+      height: 220px;
+    }
+
+    .log-area {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      height: 160px;
+      overflow-y: auto;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .log-area .log-line { margin-bottom: 0.2rem; }
+    .log-area .log-line.success { color: var(--success); }
+    .log-area .log-line.error   { color: var(--danger); }
+  </style>
+</head>
+<body class="app-layout">
+  <div id="nav-container"></div>
+
+  <main class="page-content">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="index.html">MLForge</a> › <a href="dataset.html">Dataset</a> › <a href="model-builder.html">Model</a> › Training</div>
+      <h1>Train Your Model</h1>
+      <p>Your model will be trained remotely on the server. Do not close this tab during training.</p>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar" id="status-bar">
+      <div class="status-indicator" id="status-dot" style="background:var(--muted)"></div>
+      <div>
+        <div class="status-label" id="status-label">Ready</div>
+        <div class="status-detail" id="status-detail">Configure and start training below.</div>
+      </div>
+      <div class="status-spinner hidden" id="status-spinner"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Config summary -->
+    <div class="card mb-2" id="config-summary">
+      <div class="card-title"><span class="icon">📋</span> Configuration Summary</div>
+      <div id="config-display" class="stat-grid"></div>
+      <div class="mt-2" id="config-error" style="display:none">
+        <div class="alert alert-warning">
+          <span class="alert-icon">⚠️</span>
+          <span id="config-error-msg"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Training controls -->
+    <div class="flex gap-2 mb-2">
+      <button class="btn btn-primary btn-lg" id="train-btn" onclick="startTraining()">⚡ Start Training</button>
+      <button class="btn btn-secondary" id="cancel-btn" onclick="cancelTraining()" disabled>Cancel</button>
+      <a href="evaluation.html" class="btn btn-success" id="eval-btn" style="display:none">View Results →</a>
+    </div>
+
+    <!-- Live metrics + progress -->
+    <div class="training-layout">
+      <div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📈</span> Live Metrics</div>
+          <div class="epoch-progress">
+            <div class="flex-between">
+              <span class="text-sm text-muted">Epoch</span>
+              <span class="text-sm" id="epoch-counter">—</span>
+            </div>
+            <div class="epoch-bar"><div class="epoch-bar-fill" id="epoch-bar-fill" style="width:0%"></div></div>
+          </div>
+          <div class="metric-live mt-2">
+            <div class="metric-live-item">
+              <div class="ml-label">Train Acc</div>
+              <div class="ml-value" id="live-acc">—</div>
+            </div>
+            <div class="metric-live-item">
+              <div class="ml-label">Val Acc</div>
+              <div class="ml-value" id="live-val-acc">—</div>
+            </div>
+            <div class="metric-live-item">
+              <div class="ml-label">Train Loss</div>
+              <div class="ml-value" id="live-loss">—</div>
+            </div>
+            <div class="metric-live-item">
+              <div class="ml-label">Val Loss</div>
+              <div class="ml-value" id="live-val-loss">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Training log -->
+        <div class="card mt-2">
+          <div class="card-title"><span class="icon">📝</span> Training Log</div>
+          <div class="log-area" id="log-area"></div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📊</span> Accuracy</div>
+          <div class="chart-container">
+            <canvas id="acc-chart"></canvas>
+          </div>
+        </div>
+        <div class="card mt-2">
+          <div class="card-title"><span class="icon">📉</span> Loss</div>
+          <div class="chart-container">
+            <canvas id="loss-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Overfitting explainer -->
+        <div class="explain-box mt-2">
+          <strong>Reading the curves:</strong>
+          If validation accuracy stops improving while training accuracy keeps rising → <strong>overfitting</strong>.
+          If both remain low → <strong>underfitting</strong>.
+          Ideal: both curves converge and stay close together.
+        </div>
+      </div>
+    </div>
+
+    <div class="step-actions">
+      <a href="model-builder.html" class="btn btn-secondary">← Back to Model</a>
+      <a href="evaluation.html" class="btn btn-primary" id="next-btn" style="display:none">View Evaluation →</a>
+    </div>
+  </main>
+
+  <script src="js/mlforge.js"></script>
+  <script src="js/training.js"></script>
+</body>
+</html>

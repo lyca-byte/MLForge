@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Builder — MLForge</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .builder-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 750px) {
+      .builder-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Layer palette */
+    .palette-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .palette-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0.8rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: border-color 0.15s, transform 0.1s;
+      color: var(--text);
+    }
+    .palette-item:hover { border-color: var(--accent); transform: translateX(2px); }
+    .palette-item .pi-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .palette-item .pi-label { flex: 1; }
+    .palette-item .pi-add { color: var(--accent); font-size: 1.1rem; font-weight: 800; }
+
+    /* Layer list */
+    .layer-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .layer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .layer-card:hover { border-color: #3a3f5a; }
+
+    .layer-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.7rem 1rem;
+      cursor: pointer;
+      background: var(--surface2);
+      border-bottom: 1px solid transparent;
+      user-select: none;
+    }
+    .layer-card.expanded .layer-header { border-bottom-color: var(--border); }
+    .layer-header .lh-dot {
+      width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    }
+    .layer-header .lh-name { font-weight: 700; font-size: 0.88rem; flex: 1; }
+    .layer-header .lh-summary { font-size: 0.75rem; color: var(--muted); }
+    .layer-header .lh-caret {
+      color: var(--muted); font-size: 0.8rem; transition: transform 0.2s;
+    }
+    .layer-card.expanded .lh-caret { transform: rotate(90deg); }
+
+    .layer-body {
+      padding: 0.9rem 1rem;
+      display: none;
+    }
+    .layer-card.expanded .layer-body { display: block; }
+
+    .layer-actions {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Drag handles */
+    .lh-drag {
+      cursor: grab; color: var(--muted); font-size: 0.9rem; padding: 0 2px;
+    }
+    .lh-drag:active { cursor: grabbing; }
+
+    /* Architecture summary */
+    .arch-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0.5rem 0;
+    }
+    .arch-node {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0.7rem;
+      font-size: 0.8rem;
+    }
+    .arch-node .an-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .arch-node .an-name { font-weight: 600; color: var(--text); }
+    .arch-node .an-params { color: var(--muted); font-size: 0.72rem; margin-left: auto; font-family: var(--mono); }
+    .arch-connector { margin-left: 1rem; color: var(--border); font-size: 0.75rem; }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--muted);
+    }
+    .empty-state .es-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .empty-state p { font-size: 0.88rem; max-width: 300px; margin: 0 auto; }
+
+    .validation-banner {
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      margin-top: 0.75rem;
+    }
+  </style>
+</head>
+<body class="app-layout">
+  <div id="nav-container"></div>
+
+  <main class="page-content">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="index.html">MLForge</a> › <a href="dataset.html">Dataset</a> › Model Builder</div>
+      <h1>Visual Model Builder</h1>
+      <p id="dataset-context" class="text-muted"></p>
+    </div>
+
+    <div class="builder-layout">
+      <!-- Left: palette + info -->
+      <div>
+        <!-- Layer palette -->
+        <div class="card">
+          <div class="card-title"><span class="icon">➕</span> Add Layer</div>
+          <div class="palette-list" id="palette"></div>
+        </div>
+
+        <!-- Templates -->
+        <div class="card mt-2">
+          <div class="card-title"><span class="icon">📐</span> Quick Templates</div>
+          <div style="display:flex;flex-direction:column;gap:0.5rem">
+            <button class="btn btn-secondary btn-sm w-full" onclick="loadTemplate('simple')">Simple CNN</button>
+            <button class="btn btn-secondary btn-sm w-full" onclick="loadTemplate('deeper')">Deeper CNN</button>
+            <button class="btn btn-secondary btn-sm w-full" onclick="loadTemplate('mlp')">MLP (Dense only)</button>
+            <button class="btn btn-danger btn-sm w-full" onclick="clearLayers()">Clear All</button>
+          </div>
+        </div>
+
+        <!-- Architecture preview -->
+        <div class="card mt-2">
+          <div class="card-title"><span class="icon">🗂️</span> Architecture Preview</div>
+          <div id="arch-preview">
+            <div class="empty-state"><p>Add layers to see the architecture</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: layer stack -->
+      <div>
+        <div class="card">
+          <div class="flex-between mb-2">
+            <div class="card-title mb-0"><span class="icon">🧠</span> Model Layers</div>
+            <span class="badge badge-muted" id="layer-count-badge">0 layers</span>
+          </div>
+
+          <div id="validation-msg" style="display:none"></div>
+
+          <div id="layer-list">
+            <div class="empty-state">
+              <div class="es-icon">🧩</div>
+              <p>No layers yet. Add layers from the palette on the left to build your model.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Training config preview -->
+        <div class="card mt-2" id="training-config-card">
+          <div class="card-title"><span class="icon">⚙️</span> Training Configuration</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Epochs</label>
+              <input type="number" class="form-control" id="cfg-epochs" value="10" min="1" max="50">
+              <div class="form-hint">Max 50. One epoch = one full pass over training data.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Batch Size</label>
+              <input type="number" class="form-control" id="cfg-batch" value="64" min="8" max="256" step="8">
+              <div class="form-hint">Samples processed before updating weights.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Learning Rate</label>
+              <input type="number" class="form-control" id="cfg-lr" value="0.001" min="0.00001" max="1" step="0.0001">
+              <div class="form-hint">Controls how big each weight update is.</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Optimizer</label>
+              <select class="form-control" id="cfg-optimizer">
+                <option value="adam">Adam (recommended)</option>
+                <option value="sgd">SGD</option>
+                <option value="rmsprop">RMSprop</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Validation Split</label>
+              <input type="number" class="form-control" id="cfg-val-split" value="0.1" min="0.05" max="0.3" step="0.05">
+              <div class="form-hint">Fraction of training data reserved for validation.</div>
+            </div>
+          </div>
+          <div class="explain-box">
+            <strong>Optimizer:</strong> Adam adapts the learning rate automatically and works well for most problems.
+            SGD is simpler but may need manual tuning.
+            <br><strong>Learning Rate:</strong> Too high → unstable training. Too low → slow convergence.
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <a href="dataset.html" class="btn btn-secondary">← Back</a>
+          <button class="btn btn-primary" id="next-btn" disabled onclick="goNext()">
+            Next: Train Model →
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/mlforge.js"></script>
+  <script src="js/model-builder.js"></script>
+</body>
+</html>

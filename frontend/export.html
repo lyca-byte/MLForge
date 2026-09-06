@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Export — MLForge</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .export-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .export-card .ec-icon { font-size: 2rem; }
+    .export-card h3 { font-size: 0.95rem; font-weight: 700; }
+    .export-card p  { font-size: 0.8rem; color: var(--muted); flex: 1; line-height: 1.5; }
+    .export-card code { font-size: 0.8rem; }
+
+    .export-status {
+      font-size: 0.78rem;
+      height: 20px;
+    }
+  </style>
+</head>
+<body class="app-layout">
+  <div id="nav-container"></div>
+
+  <main class="page-content">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="index.html">MLForge</a> › <a href="prediction.html">Prediction</a> › Export</div>
+      <h1>Export Your Model</h1>
+      <p>Download your trained model and supporting files for use outside MLForge.</p>
+    </div>
+
+    <div id="no-model" class="alert alert-warning" style="display:none">
+      <span class="alert-icon">⚠️</span>
+      No trained model available. Please <a href="training.html">train a model</a> first.
+    </div>
+
+    <div id="export-content">
+      <!-- Model exports -->
+      <div class="card">
+        <div class="card-title"><span class="icon">🤖</span> Model Files</div>
+        <div class="export-grid">
+          <div class="export-card">
+            <div class="ec-icon">🧠</div>
+            <h3>Keras Model</h3>
+            <p>Full SavedModel in <code>.keras</code> format. Includes weights, architecture, and optimizer state. Compatible with TensorFlow 2.</p>
+            <div class="export-status" id="status-keras"></div>
+            <button class="btn btn-primary btn-sm" onclick="downloadExport('keras')">Download .keras</button>
+          </div>
+          <div class="export-card">
+            <div class="ec-icon">📱</div>
+            <h3>TensorFlow Lite</h3>
+            <p>Quantized <code>.tflite</code> model for edge deployment — mobile apps, embedded devices, and Raspberry Pi.</p>
+            <div class="export-status" id="status-tflite"></div>
+            <button class="btn btn-primary btn-sm" onclick="downloadExport('tflite')">Download .tflite</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metadata exports -->
+      <div class="card mt-2">
+        <div class="card-title"><span class="icon">📄</span> Metadata & Results</div>
+        <div class="export-grid">
+          <div class="export-card">
+            <div class="ec-icon">🗂️</div>
+            <h3>Architecture JSON</h3>
+            <p>The model layer configuration as structured JSON. Useful for documentation or re-building the model programmatically.</p>
+            <div class="export-status" id="status-architecture"></div>
+            <button class="btn btn-secondary btn-sm" onclick="downloadExport('architecture')">Download JSON</button>
+          </div>
+          <div class="export-card">
+            <div class="ec-icon">📈</div>
+            <h3>Training History</h3>
+            <p>Epoch-by-epoch accuracy and loss values as JSON. Great for creating your own visualizations.</p>
+            <div class="export-status" id="status-history"></div>
+            <button class="btn btn-secondary btn-sm" onclick="downloadExport('history')">Download JSON</button>
+          </div>
+          <div class="export-card">
+            <div class="ec-icon">📊</div>
+            <h3>Evaluation Results</h3>
+            <p>Accuracy, precision, recall, F1, and confusion matrix as JSON. Useful for reporting and comparison.</p>
+            <div class="export-status" id="status-evaluation"></div>
+            <button class="btn btn-secondary btn-sm" onclick="downloadExport('evaluation')">Download JSON</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage note -->
+      <div class="card mt-2">
+        <div class="card-title"><span class="icon">💡</span> Using Your Exported Model</div>
+        <p class="text-sm mb-2" style="color:var(--muted)">Load the <code>.keras</code> file in Python:</p>
+        <pre>import tensorflow as tf
+
+model = tf.keras.models.load_model('model.keras')
+prediction = model.predict(your_image_array)</pre>
+
+        <p class="text-sm mt-2 mb-2" style="color:var(--muted)">Load the <code>.tflite</code> file with TFLite Interpreter:</p>
+        <pre>import tensorflow as tf
+
+interpreter = tf.lite.Interpreter(model_path='model.tflite')
+interpreter.allocate_tensors()
+# Get input/output details and run inference</pre>
+
+        <div class="alert alert-info mt-2">
+          <span class="alert-icon">ℹ️</span>
+          The exported model is trained on your selected dataset and classes only.
+          It will only produce meaningful predictions for the same type of input used during training.
+        </div>
+      </div>
+    </div>
+
+    <div class="step-actions">
+      <a href="prediction.html" class="btn btn-secondary">← Prediction</a>
+      <a href="index.html" class="btn btn-success">🏠 Start Over</a>
+    </div>
+  </main>
+
+  <script src="js/mlforge.js"></script>
+  <script src="js/export.js"></script>
+</body>
+</html>
