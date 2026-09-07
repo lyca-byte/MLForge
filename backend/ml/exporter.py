@@ -23,13 +23,23 @@ MODEL_DIR = BASE_DIR / "models"
 # def get_keras_path(job_id: str) -> str:
 #     return f"models/{job_id}.keras"
 
-def get_keras_path(job_id):
-    return f"models/{job_id}.keras"
+# def get_keras_path(job_id):
+#     return f"models/{job_id}.keras"
+
+
+# def get_tflite_path(job_id: str) -> str:
+#     return f"models/{job_id}.tflite"
+
+def get_job_dir(job_id: str) -> Path:
+    return MODEL_DIR / job_id
+
+
+def get_keras_path(job_id: str) -> str:
+    return str(get_job_dir(job_id) / "model.keras")
 
 
 def get_tflite_path(job_id: str) -> str:
-    return f"models/{job_id}.tflite"
-
+    return str(get_job_dir(job_id) / "model.tflite")
 
 def export_tflite(job_id: str) -> str:
     """
@@ -38,6 +48,9 @@ def export_tflite(job_id: str) -> str:
     """
     keras_path  = get_keras_path(job_id)
     tflite_path = get_tflite_path(job_id)
+
+    job_dir = get_job_dir(job_id)
+    job_dir.mkdir(parents=True, exist_ok=True)
 
     if not os.path.exists(keras_path):
         raise FileNotFoundError(f"Trained model not found for job {job_id}.")

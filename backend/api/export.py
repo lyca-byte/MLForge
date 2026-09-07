@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, Response
@@ -24,23 +25,57 @@ logger = logging.getLogger("mlforge.export")
 
 EXPORT_TYPES = {"keras", "tflite", "architecture", "history", "evaluation"}
 
+BASE_DIR = Path(__file__).resolve().parents[2]
+MODEL_DIR = BASE_DIR / "models"
+
+def get_job_dir(job_id: str) -> Path:
+    return MODEL_DIR / job_id
+
+# @router.get("/{export_type}/{job_id}")
+# async def export_model(export_type: str, job_id: str):
+#     if export_type not in EXPORT_TYPES:
+#         raise HTTPException(status_code=400, detail=f"Unknown export type '{export_type}'.")
+
+#     job = get_job(job_id)
+#     if not job:
+#         raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found.")
+#     if job["status"] != "completed":
+#         raise HTTPException(status_code=400, detail="Training not complete yet.")
 
 @router.get("/{export_type}/{job_id}")
 async def export_model(export_type: str, job_id: str):
     if export_type not in EXPORT_TYPES:
-        raise HTTPException(status_code=400, detail=f"Unknown export type '{export_type}'.")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown export type '{export_type}'."
+        )
 
-    job = get_job(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found.")
-    if job["status"] != "completed":
-        raise HTTPException(status_code=400, detail="Training not complete yet.")
+    job_dir = get_job_dir(job_id)
+
+    if not job_dir.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Training artifacts for job '{job_id}' not found."
+        )
 
     # ── .keras file ───────────────────────────────────────────
+    # if export_type == "keras":
+    #     path = get_keras_path(job_id)
+    #     if not os.path.exists(path):
+    #         raise HTTPException(status_code=404, detail="Model file not found.")
+    #     return FileResponse(
+    #         path=path,
+    #         media_type="application/octet-stream",
+    #         filename=f"mlforge_model_{job_id[:8]}.keras",
+    #     )
+
     if export_type == "keras":
         path = get_keras_path(job_id)
         if not os.path.exists(path):
-            raise HTTPException(status_code=404, detail="Model file not found.")
+            raise HTTPException(
+                status_code=404,
+                detail="Model file not found."
+            )
         return FileResponse(
             path=path,
             media_type="application/octet-stream",
@@ -48,13 +83,29 @@ async def export_model(export_type: str, job_id: str):
         )
 
     # ── .tflite file ──────────────────────────────────────────
+    # elif export_type == "tflite":
+    #     try:
+    #         path = export_tflite(job_id)
+    #     except FileNotFoundError as e:
+    #         raise HTTPException(status_code=404, detail=str(e))
+    #     except Exception as e:
+    #         logger.exception("TFLite conversion failed for job %s", job_id)
+    #         raise HTTPException(status_code=500, detail=f"TFLite conversion failed: {e}")
+
+    #     return FileResponse(
+    #         path=path,
+    #         media_type="application/octet-stream",
+    #         filename=f"mlforge_model_{job_id[:8]}.tflite",
+    #     )
+
     elif export_type == "tflite":
         try:
             path = export_tflite(job_id)
+
         except FileNotFoundError as e:
             raise HTTPException(status_code=404, detail=str(e))
         except Exception as e:
-            logger.exception("TFLite conversion failed for job %s", job_id)
+            logger.exception("TFLite conversion failed for job %s",job_id)
             raise HTTPException(status_code=500, detail=f"TFLite conversion failed: {e}")
 
         return FileResponse(
@@ -64,39 +115,72 @@ async def export_model(export_type: str, job_id: str):
         )
 
     # ── JSON exports ──────────────────────────────────────────
-    elif export_type == "architecture":
-        # The model architecture is stored inside the job payload
-        # Re-derive from the keras model's config
-        try:
-            from tensorflow import keras as _keras
-            kpath = get_keras_path(job_id)
-            model = _keras.models.load_model(kpath)
-            data  = json.loads(model.to_json())
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Could not load model: {e}")
+    # elif export_type == "architecture":
+    #     # The model architecture is stored inside the job payload
+    #     # Re-derive from the keras model's config
+    #     try:
+    #         from tensorflow import keras as _keras
+    #         kpath = get_keras_path(job_id)
+    #         model = _keras.models.load_model(kpath)
+    #         data  = json.loads(model.to_json())
+    #     except Exception as e:
+    #         raise HTTPException(status_code=500, detail=f"Could not load model: {e}")
 
-        return Response(
-            content=json.dumps(data, indent=2),
-            media_type="application/json",
-            headers={"Content-Disposition": f'attachment; filename="mlforge_architecture_{job_id[:8]}.json"'},
-        )
+    #     return Response(
+    #         content=json.dumps(data, indent=2),
+    #         media_type="application/json",
+    #         headers={"Content-Disposition": f'attachment; filename="mlforge_architecture_{job_id[:8]}.json"'},
+    #     )
+
+    elif export_type == "architecture":
+
+        path = job_dir / "architecture.json"
+
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="Architecture JSON not found.")
+
+        return FileResponse(path=str(path), 
+        media_type="application/json", 
+        filename=f"mlforge_architecture_{job_id[:8]}.json",)
+
+    # elif export_type == "history":
+    #     history = job.get("history")
+    #     if not history:
+    #         raise HTTPException(status_code=404, detail="Training history not available.")
+    #     return Response(
+    #         content=json.dumps(history, indent=2),
+    #         media_type="application/json",
+    #         headers={"Content-Disposition": f'attachment; filename="mlforge_history_{job_id[:8]}.json"'},
+    #     )
 
     elif export_type == "history":
-        history = job.get("history")
-        if not history:
-            raise HTTPException(status_code=404, detail="Training history not available.")
-        return Response(
-            content=json.dumps(history, indent=2),
+        path = job_dir / "history.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="Training history not found.")
+
+        return FileResponse(
+            path=str(path),
             media_type="application/json",
-            headers={"Content-Disposition": f'attachment; filename="mlforge_history_{job_id[:8]}.json"'},
+            filename=f"mlforge_history_{job_id[:8]}.json",
         )
 
+    # elif export_type == "evaluation":
+    #     metrics = job.get("metrics")
+    #     if not metrics:
+    #         raise HTTPException(status_code=404, detail="Evaluation results not available.")
+    #     return Response(
+    #         content=json.dumps(metrics, indent=2),
+    #         media_type="application/json",
+    #         headers={"Content-Disposition": f'attachment; filename="mlforge_evaluation_{job_id[:8]}.json"'},
+    #     )
+
     elif export_type == "evaluation":
-        metrics = job.get("metrics")
-        if not metrics:
-            raise HTTPException(status_code=404, detail="Evaluation results not available.")
-        return Response(
-            content=json.dumps(metrics, indent=2),
+        path = job_dir / "evaluation.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="Evaluation results not found.")
+
+        return FileResponse(
+            path=str(path),
             media_type="application/json",
-            headers={"Content-Disposition": f'attachment; filename="mlforge_evaluation_{job_id[:8]}.json"'},
+            filename=f"mlforge_evaluation_{job_id[:8]}.json",
         )

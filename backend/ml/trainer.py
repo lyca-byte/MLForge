@@ -11,7 +11,7 @@ import uuid
 import time
 import logging
 from typing import Any, Dict, Optional
-
+import json
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -34,6 +34,11 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 # Directory untuk menyimpan model hasil training
 MODEL_DIR = BASE_DIR / "models"
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
+
+def get_job_dir(job_id: str) -> Path:
+    job_dir = MODEL_DIR / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
+    return job_dir
 
 # ── In-memory job store ───────────────────────────────────────
 # Maps job_id → job dict
@@ -138,31 +143,75 @@ def _run_training(job_id: str, payload: Dict[str, Any]) -> None:
             _ProgressCallback(job_id=job_id, total_epochs=train_cfg["epochs"]),
         ]
 
-        model.fit(
-            x_train, y_train_fit,
-            epochs=train_cfg["epochs"],
-            batch_size=train_cfg["batch_size"],
-            validation_split=train_cfg["validation_split"],
-            callbacks=callbacks,
-            verbose=0,
+        # model.fit(
+        #     x_train, y_train_fit,
+        #     epochs=train_cfg["epochs"],
+        #     batch_size=train_cfg["batch_size"],
+        #     validation_split=train_cfg["validation_split"],
+        #     callbacks=callbacks,
+        #     verbose=0,
+        # )
+        
+        fit_result = model.fit(
+        x_train,
+        y_train_fit,
+        epochs=train_cfg["epochs"],
+        batch_size=train_cfg["batch_size"],
+        validation_split=train_cfg["validation_split"],
+        callbacks=callbacks,
+        verbose=0,
         )
+
+        # Save history
+        job_dir = MODEL_DIR / job_id
+        job_dir.mkdir(parents=True, exist_ok=True)
+
+        with open(job_dir / "history.json", "w", encoding="utf-8") as f:
+            json.dump(history.history, f, indent=2)
 
         if job.get("cancelled"):
             job["status"]  = "failed"
             job["message"] = "Training cancelled."
             return
 
+        # Save history
+        job_dir = get_job_dir(job_id)
+        history = {
+            key: [float(value) for value in values]
+            for key, values in fit_result.history.items()
+        }
+        save_json(job_dir / "history.json", history)
+
+        # Save architecture
+        architecture = json.loads(model.to_json())
+        save_json(job_dir / "architecture.json", architecture)
+
         job["message"] = "Training complete. Evaluating…"
+
+        # Save Metadata
+        metadata = {
+            "job_id": job_id,
+            "dataset": ds_cfg,
+            "model": model_cfg,
+            "training": train_cfg,
+            "status": "completed",
+        }
+        save_json(job_dir / "metadata.json", metadata)
 
         # Evaluate
         metrics = evaluate_model(model, x_test, y_test_fit, ds_cfg, num_classes)
         metrics["model_info"] = get_model_info(model)
+        save_json(job_dir / "evaluation.json", metrics)
 
         # Save model
-        import os
-        os.makedirs("models", exist_ok=True)
-        model_path = f"models/{job_id}.keras"
-        model.save(model_path)
+        # import os
+        # os.makedirs("models", exist_ok=True)  
+        # model_path = f"models/{job_id}.keras"
+        # model.save(model_path)
+
+        job_dir = get_job_dir(job_id)
+        model_path = job_dir / "model.keras"
+        model.save(str(model_path))
 
         job["model_path"]        = model_path
         job["metrics"]           = metrics
@@ -203,6 +252,9 @@ def create_job(payload: Dict[str, Any]) -> str:
     thread.start()
     return job_id
 
+def save_json(path: Path, data: dict) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 def get_job(job_id: str) -> Optional[Dict[str, Any]]:
     return _JOBS.get(job_id)

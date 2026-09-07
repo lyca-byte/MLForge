@@ -44,7 +44,11 @@ MLForge.API_BASE =
     window.MLForgeConfig?.API_BASE || 'http://localhost:8000';
 
 MLForge.api = async function(method, path, body, opts = {}) {
-  const url = MLForge.API_BASE + path;
+  // const url = MLForge.API_BASE + path;
+  
+  const base = (MLForge.API_BASE || '').replace(/\/+$/, '');
+  const endpoint = path.startsWith('/') ? path : `/${path}`;
+  const url = base + endpoint;
   const headers = {};
   let bodyContent;
 
