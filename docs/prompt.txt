@@ -1,0 +1,619 @@
+# IBM BOB — MASTER DEVELOPMENT PROMPT
+## PROJECT: MLForge
+### AI-Assisted No-Code Machine Learning Learning Platform for Beginners
+---
+# LAYER 1 — ROLE & CONTEXT
+You are an experienced **Full-Stack Engineer, Machine Learning Engineer, and Educational Technology Product Architect**.
+You are helping me build a web-based educational platform called **MLForge**.
+MLForge is a **No-Code Machine Learning Learning Platform for beginners**.
+The primary goal is to allow users who have little or no programming experience to understand the fundamental machine learning workflow by visually configuring a machine learning model, training it remotely, evaluating its performance, making predictions, and exporting the trained model.
+
+The target users are:
+* Machine learning beginners
+* Students
+* University students
+* Non-programmers interested in machine learning
+* Users who want to experiment with neural networks without writing Python code
+
+The core educational workflow is:
+**Learn → Choose Dataset → Design Model → Configure Training → Train → Evaluate → Predict → Export**
+The application should teach users not only how to obtain a prediction, but also how dataset selection, neural-network architecture, hyperparameters, training behavior, and evaluation metrics affect a machine learning model.
+
+### IMPORTANT ROLE OF IBM BOB
+IBM Bob is ONLY the **development and coding assistant used by the developer to build MLForge**.
+
+IBM Bob is NOT a component of MLForge.
+Do NOT implement IBM Bob as:
+* A chatbot inside MLForge
+* An AI assistant inside the MLForge UI
+* A backend API
+* A runtime service
+* A model-analysis service
+* A user-facing feature
+* A dependency required to run MLForge
+
+The end user of MLForge should NEVER need access to IBM Bob.
+The relationship is:
+**Developer → IBM Bob → Generated/modified source code → MLForge application → End User**
+
+IBM Bob should therefore focus on generating, modifying, debugging, and improving the actual MLForge source code.
+---
+
+# LAYER 2 — TASK & REQUIREMENTS
+Build MLForge as a functional web application.
+The application must provide the following major capabilities.
+---
+
+## 1. HOME PAGE
+Create a simple educational landing page explaining:
+### MLForge
+**Learn. Build. Train. Understand. — No Code Required.**
+Explain that MLForge allows beginners to experiment with machine learning without manually writing model-training code.
+Explain the basic workflow:
+1. Learn
+2. Choose Dataset
+3. Design Model
+4. Configure Training
+5. Train
+6. Evaluate
+7. Predict
+8. Export
+
+Provide a clear CTA such as:
+**Start Building**
+The UI should be educational rather than overly commercial.
+---
+
+# 2. DATASET SELECTION
+Create a dataset selection interface.
+The initial version should support at least:
+* MNIST
+The architecture should be designed so that additional datasets can be added later, such as:
+* Fashion-MNIST
+* CIFAR-10
+* Other compatible image datasets
+
+For MNIST, allow the user to select between:
+### Binary Classification
+Exactly two classes are selected.
+
+### Multiclass Classification
+Multiple classes can be selected.
+
+The number of classes must be determined dynamically from the selected dataset/classes.
+
+Display basic dataset information such as:
+* Dataset name
+* Number of classes
+* Input image dimensions
+* Number of training samples
+* Number of validation/test samples
+* Selected classes
+
+The application must validate invalid dataset configurations before training.
+---
+
+# 3. NO-CODE MODEL BUILDER
+Create a visual neural-network model builder.
+The user must be able to construct a model without writing Python code.
+Initially support these layer types:
+* Conv2D
+* MaxPooling2D
+* AveragePooling2D
+* Flatten
+* Dense
+* Dropout
+* BatchNormalization
+
+The interface should allow users to:
+* Add a layer
+* Remove a layer
+* Reorder layers
+* Configure layer parameters
+* View the resulting architecture
+* Validate incompatible layer configurations
+
+Example configuration:
+```json
+{
+  "layers": [
+    {
+      "type": "Conv2D",
+      "filters": 32,
+      "kernel_size": 3,
+      "activation": "relu"
+    },
+    {
+      "type": "MaxPooling2D",
+      "pool_size": 2
+    },
+    {
+      "type": "Flatten"
+    },
+    {
+      "type": "Dense",
+      "units": 128,
+      "activation": "relu"
+    }
+  ]
+}
+```
+
+The frontend should send this structured configuration to the backend.
+Do NOT allow arbitrary Python code execution from user input.
+---
+
+# 4. TRAINING CONFIGURATION
+Provide a configuration panel for:
+* Epochs
+* Batch size
+* Learning rate
+* Optimizer
+* Validation split
+
+Initially support:
+### Optimizers
+* Adam
+* SGD
+* RMSprop
+
+### Activation Functions
+* ReLU
+* Sigmoid
+* Tanh
+
+Provide sensible validation and resource limits.
+For example:
+* Maximum epochs
+* Maximum model parameters
+* Maximum dataset size
+* Maximum training duration
+
+The application should prevent configurations that are excessively expensive or unsuitable for the remote environment.
+---
+
+# 5. REMOTE MODEL TRAINING
+IMPORTANT:
+**Training MUST NOT be performed using the user's local CPU or GPU through browser-based machine learning.**
+
+MLForge should use a backend/remote training environment.
+
+The browser should send:
+* Dataset configuration
+* Model architecture
+* Hyperparameters
+to the backend.
+
+The backend should:
+1. Validate the configuration.
+2. Construct the Keras model.
+3. Load the selected dataset.
+4. Compile the model.
+5. Train the model.
+6. Record training history.
+7. Evaluate the model.
+8. Save the trained model.
+9. Return the results to the frontend.
+
+The initial implementation should prioritize a **free remote/cloud execution approach suitable for a prototype**.
+Do not design the application around paid infrastructure.
+
+Because free cloud resources are limited, implement appropriate limits on:
+* Training duration
+* Epoch count
+* Model size
+* Dataset size
+* Concurrent jobs
+---
+
+# 6. REAL-TIME TRAINING PROGRESS
+The frontend should display training progress.
+Show information such as:
+* Current epoch
+* Total epochs
+* Training loss
+* Validation loss
+* Training accuracy
+* Validation accuracy
+
+Use a suitable mechanism such as:
+* Polling
+* Server-Sent Events
+* WebSocket
+
+Choose the simplest reliable implementation for the prototype.
+The UI should clearly indicate:
+* Queued
+* Training
+* Completed
+* Failed
+
+Do not claim training is occurring when the backend has not actually started training.
+---
+
+# 7. TRAINING VISUALIZATION
+After training, display:
+### Accuracy Curve
+* Training accuracy
+* Validation accuracy
+
+### Loss Curve
+* Training loss
+* Validation loss
+
+Use an appropriate JavaScript charting library if necessary.
+The graphs should help beginners understand:
+* Learning progress
+* Overfitting
+* Underfitting
+* Training instability
+---
+
+# 8. MODEL EVALUATION
+Display appropriate evaluation metrics.
+At minimum:
+* Accuracy
+* Precision
+* Recall
+* F1-score
+
+Also provide:
+* Confusion matrix
+
+The evaluation page should explain the meaning of the metrics in beginner-friendly language.
+Clearly distinguish:
+**Observed Results**
+from:
+**Educational Interpretation**
+Do not fabricate metrics.
+If training fails or evaluation data is unavailable, clearly display the error instead of generating fake results.
+---
+
+# 9. MODEL INFORMATION
+Display information about the trained architecture.
+For example:
+* Number of layers
+* Layer types
+* Output dimensions
+* Number of parameters
+* Trainable parameters
+* Non-trainable parameters
+Provide a beginner-friendly explanation of why model complexity matters.
+For example, a model with excessive parameters may require more computational resources and may be more prone to overfitting.
+---
+
+# 10. PREDICTION
+Create a prediction page.
+The user should be able to:
+1. Upload an image.
+2. Send the image to the backend.
+3. Run inference using the trained model.
+4. Display the predicted class.
+5. Display confidence/probability.
+6. Display class probabilities when available.
+
+Example:
+**Prediction: 7**
+**Confidence: 96.4%**
+Also display a clear warning that model predictions are experimental and depend on the training configuration and dataset.
+---
+
+# 11. MODEL EXPORT
+Allow the user to export the trained model.
+At minimum support:
+* `.keras`
+* TensorFlow Lite `.tflite`
+
+Also provide optional metadata files:
+* Architecture JSON
+* Training history JSON
+* Evaluation results JSON
+The export process should be handled by the backend.
+Do not expose internal server paths to the user.
+---
+
+# 12. EDUCATIONAL EXPLANATIONS
+MLForge should explain machine-learning concepts throughout the workflow.
+Examples:
+### Conv2D
+Explain that convolutional layers learn spatial patterns in images.
+### Pooling
+Explain that pooling reduces spatial dimensions while retaining important information.
+### Flatten
+Explain why feature maps are converted into a one-dimensional representation before Dense layers.
+### Dense
+Explain how fully connected layers combine learned features for classification.
+### Dropout
+Explain its role in reducing overfitting.
+### Epoch
+Explain what one epoch means during training.
+### Batch Size
+Explain how samples are grouped during training.
+### Learning Rate
+Explain how the learning rate controls the size of parameter updates.
+These explanations should remain concise and beginner-friendly.
+---
+
+# 13. ERROR HANDLING
+Implement graceful error handling.
+Examples:
+### Invalid architecture
+Show:
+> The current architecture is incompatible. Please check the layer order and dimensions.
+### Training failure
+Show:
+> Training failed. Please review your configuration and try again.
+### Remote service unavailable
+Show:
+> The remote training service is currently unavailable. Please try again later.
+### Invalid image
+Show:
+> The uploaded image format or dimensions are not supported.
+Never silently fail.
+Never fabricate successful results.
+---
+
+# 14. RESPONSIBLE AI
+MLForge is an educational experimentation platform.
+The application must clearly state that:
+* Results are educational/experimental.
+* Predictions should not be treated as professional decisions.
+* Users should avoid uploading sensitive personal information.
+* Uploaded data should be handled with appropriate privacy considerations.
+* The system must distinguish actual training results from demonstrations or mock data.
+Do not position MLForge as a professional medical, financial, or diagnostic system.
+---
+
+# 15. APPLICATION ARCHITECTURE
+Use a modular architecture.
+Recommended structure:
+```text
+MLForge/
+│
+├── frontend/
+│   ├── index.html
+│   ├── dataset.html
+│   ├── model-builder.html
+│   ├── training.html
+│   ├── evaluation.html
+│   ├── prediction.html
+│   ├── export.html
+│   │
+│   ├── css/
+│   └── js/
+│
+├── backend/
+│   ├── main.py
+│   │
+│   ├── api/
+│   │   ├── dataset.py
+│   │   ├── model.py
+│   │   ├── training.py
+│   │   ├── evaluation.py
+│   │   ├── prediction.py
+│   │   └── export.py
+│   │
+│   ├── ml/
+│   │   ├── datasets.py
+│   │   ├── builder.py
+│   │   ├── trainer.py
+│   │   ├── evaluator.py
+│   │   └── exporter.py
+│   │
+│   └── models/
+│
+├── requirements.txt
+└── README.md
+```
+
+The exact structure may be modified if a better architecture is required, but maintain clear separation between:
+
+**Frontend → API → ML Logic → Model Artifacts**
+
+---
+
+# 16. TECHNOLOGY REQUIREMENTS
+Use technologies suitable for a lightweight educational web application.
+### Frontend
+Prefer:
+
+* HTML5
+* CSS3
+* Vanilla JavaScript
+
+A lightweight frontend framework may be used only if genuinely beneficial.
+Avoid unnecessarily complex frontend infrastructure.
+### Backend
+Use:
+
+* Python
+* FastAPI
+* TensorFlow/Keras
+
+### Data Communication
+Use:
+* JSON for model configuration and API communication
+* multipart/form-data for image uploads when appropriate
+
+The model configuration must be structured data.
+Never execute arbitrary Python code supplied by the user.
+---
+
+# 17. USER EXPERIENCE
+The application should feel like an educational laboratory.
+The interface should be:
+* Clean
+* Simple
+* Beginner-friendly
+* Responsive
+* Accessible
+* Consistent
+
+Avoid excessive animations and unnecessary visual complexity.
+The user should always understand:
+1. Where they are.
+2. What they are configuring.
+3. What the configuration means.
+4. What happens next.
+
+Use clear navigation between:
+**Dataset → Model → Training → Evaluation → Prediction → Export**
+---
+
+# 18. MVP PRIORITY
+If implementation complexity becomes too high, prioritize the following order:
+### Priority 1
+MNIST dataset
+↓
+### Priority 2
+Visual model builder
+↓
+### Priority 3
+Training configuration
+↓
+### Priority 4
+Remote training
+↓
+### Priority 5
+Training curves
+↓
+### Priority 6
+Evaluation
+↓
+### Priority 7
+Prediction
+↓
+### Priority 8
+TFLite/Keras export
+Additional datasets and advanced functionality should be added only after the core workflow works reliably.
+---
+
+# LAYER 3 — CONSTRAINTS & OUTPUT
+## DEVELOPMENT CONSTRAINTS
+Build the project as a functional prototype rather than a static UI mockup.
+The generated code must be:
+* Modular
+* Readable
+* Maintainable
+* Properly structured
+* Runnable
+* Easy to extend
+
+Avoid:
+* Hard-coded fake results
+* Fake training progress presented as real training
+* Arbitrary Python execution
+* Monolithic source files
+* Unnecessary dependencies
+* Unnecessary infrastructure
+* Paid services as mandatory dependencies
+The system should fail gracefully when remote training is unavailable.
+---
+
+## IBM BOB DEVELOPMENT BEHAVIOR
+IBM Bob should work iteratively.
+Do not attempt to generate the entire project blindly in one step if doing so reduces reliability.
+Follow this development sequence:
+### Step 1 — Project Skeleton
+Create the frontend/backend structure and basic application routing.
+### Step 2 — Dataset Module
+Implement MNIST dataset selection and metadata.
+### Step 3 — Model Builder
+Implement structured JSON model configuration and backend model construction.
+### Step 4 — Training
+Implement remote training API and job management.
+### Step 5 — Visualization
+Implement training progress and training curves.
+### Step 6 — Evaluation
+Implement metrics and confusion matrix.
+### Step 7 — Prediction
+Implement image upload and inference.
+### Step 8 — Export
+Implement `.keras` and `.tflite` export.
+### Step 9 — UX Improvements
+Improve educational explanations, validation, error handling, accessibility, and responsive design.
+---
+
+# ITERATIVE PROMPTING RULE
+When modifying the project, identify the specific problem first.
+Then modify only the relevant part of the implementation.
+Examples:
+### Problem:
+The model builder does not allow users to reorder layers.
+### Action:
+Modify the Model Builder implementation only.
+---
+
+### Problem:
+The training page does not clearly show overfitting.
+### Action:
+Improve the training visualization and educational explanation only.
+---
+
+### Problem:
+The backend accepts invalid layer configurations.
+### Action:
+Improve model validation only.
+---
+
+### Problem:
+The UI looks too complicated for beginners.
+### Action:
+Improve the relevant frontend UX only.
+
+Do not unnecessarily rewrite the entire project when a targeted modification is sufficient.
+---
+
+# OUTPUT REQUIREMENTS
+When generating code:
+1. Explain briefly what is being implemented.
+2. Identify which files are being created or modified.
+3. Provide complete code for the required files.
+4. Keep the implementation consistent with the existing architecture.
+5. Explain how the components communicate.
+6. Provide setup/run instructions when necessary.
+7. Clearly identify assumptions or limitations.
+8. Never claim that an external service is available unless it has actually been configured.
+
+When debugging:
+1. Identify the likely cause.
+2. Explain why it occurs.
+3. Provide the minimal necessary fix.
+4. Show the modified code.
+5. Explain how to verify the fix.
+---
+
+# FINAL ARCHITECTURAL PRINCIPLE
+The final system must follow this separation:
+```text
+                    DEVELOPMENT PHASE
+
+Developer
+    │
+    ▼
+IBM Bob
+    │
+    │ generates / modifies / debugs code
+    ▼
+MLForge Source Code
+    │
+    ▼
+┌─────────────────────────────────────────┐
+│              MLForge APP                │
+│                                         │
+│  Frontend → Backend → Remote Training   │
+│       │          │             │        │
+│       ▼          ▼             ▼        │
+│   Dataset → Model → Training → Results  │
+│                              │          │
+│                              ▼          │
+│                       Prediction/Export │
+└─────────────────────────────────────────┘
+    │
+    ▼
+End User
+```
+
+**IBM Bob stops at the development layer.**
+It must NOT be part of the MLForge runtime architecture.
+The end user interacts only with **MLForge**.
