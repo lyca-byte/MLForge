@@ -22,13 +22,7 @@
 
 ## 🌐 Live Demo
 
-> 🚀 **ml-forge-eta.vercel.app**
-
-<!-- Add your Vercel deployment URL here -->
-
-<!-- Example:
-🌐 Live Website: https://your-project.vercel.app
--->
+> 🚀 **Visit [Website](ml-forge-eta.vercel.app)**
 
 ---
 
