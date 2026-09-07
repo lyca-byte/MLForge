@@ -163,19 +163,21 @@ def _run_training(job_id: str, payload: Dict[str, Any]) -> None:
         )
 
         # Save history
-        job_dir = MODEL_DIR / job_id
-        job_dir.mkdir(parents=True, exist_ok=True)
+        # job_dir = MODEL_DIR / job_id
+        # job_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(job_dir / "history.json", "w", encoding="utf-8") as f:
-            json.dump(history.history, f, indent=2)
+        # with open(job_dir / "history.json", "w", encoding="utf-8") as f:
+        #     json.dump(history.history, f, indent=2)
 
         if job.get("cancelled"):
             job["status"]  = "failed"
             job["message"] = "Training cancelled."
             return
 
-        # Save history
+        # Create persistent artifact directory
         job_dir = get_job_dir(job_id)
+
+        # Save history
         history = {
             key: [float(value) for value in values]
             for key, values in fit_result.history.items()
@@ -209,11 +211,10 @@ def _run_training(job_id: str, payload: Dict[str, Any]) -> None:
         # model_path = f"models/{job_id}.keras"
         # model.save(model_path)
 
-        job_dir = get_job_dir(job_id)
         model_path = job_dir / "model.keras"
         model.save(str(model_path))
 
-        job["model_path"]        = model_path
+        job["model_path"]        = str(model_path)
         job["metrics"]           = metrics
         job["status"]            = "completed"
         job["message"]           = f"Completed — {train_cfg['epochs']} epochs"
