@@ -16,3 +16,6 @@ dependencies = [
 
 [tool.fastapi]
 entrypoint = "backend.main:app"
+
+[tool.setuptools.packages.find]
+include = ["backend*"]
