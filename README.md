@@ -22,7 +22,7 @@
 
 ## 🌐 Live Demo
 
-> 🚀 **Visit [Website](ml-forge-eta.vercel.app)**
+> 🚀 **Visit [Website](https://ml-forge-eta.vercel.app/)**
 
 ---
 
