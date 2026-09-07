@@ -22,7 +22,7 @@
 
 ## 🌐 Live Demo
 
-> 🚀 **Coming Soon**
+> 🚀 **ml-forge-eta.vercel.app**
 
 <!-- Add your Vercel deployment URL here -->
 
