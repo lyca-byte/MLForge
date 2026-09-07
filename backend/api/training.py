@@ -43,8 +43,10 @@ class ModelConfig(BaseModel):
 
 
 class TrainingConfig(BaseModel):
-    epochs:           int   = Field(default=10, ge=1, le=50)
-    batch_size:       int   = Field(default=64, ge=8, le=256)
+    # epochs:           int   = Field(default=10, ge=1, le=50)
+    epochs:           int   = Field(default=10, ge=1, le=30)
+    # batch_size:       int   = Field(default=64, ge=8, le=256)
+    batch_size: int = Field(default=32, ge=8, le=128)
     learning_rate:    float = Field(default=0.001, ge=1e-6, le=1.0)
     optimizer:        str   = "adam"
     validation_split: float = Field(default=0.1, ge=0.05, le=0.3)

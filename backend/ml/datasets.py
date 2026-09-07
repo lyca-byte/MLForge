@@ -27,39 +27,111 @@ def get_dataset_info(dataset_id: str) -> Dict[str, Any]:
     return info
 
 
+# def load_dataset(
+#     dataset_id: str,
+#     selected_classes: List[int],
+#     task: str,
+# ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+#     """
+#     Load and filter a dataset to the selected classes.
+
+#     Returns:
+#         x_train, y_train, x_test, y_test
+#         y labels are remapped to 0..N-1 for the selected classes.
+#     """
+#     dataset_id = dataset_id.lower()
+
+#     if dataset_id == "mnist":
+#         from tensorflow.keras.datasets import mnist  # type: ignore
+#         (x_train, y_train), (x_test, y_test) = mnist.load_data()
+#         # Add channel dim → (N, 28, 28, 1)
+#         x_train = x_train[..., np.newaxis].astype(np.float32) / 255.0
+#         x_test  = x_test[...,  np.newaxis].astype(np.float32) / 255.0
+#     else:
+#         raise ValueError(f"Unsupported dataset: {dataset_id}")
+
+#     # ── Filter to selected classes ────────────────────────────
+#     selected = sorted(selected_classes)
+#     label_map = {orig: new for new, orig in enumerate(selected)}
+
+#     train_mask = np.isin(y_train, selected)
+#     test_mask  = np.isin(y_test,  selected)
+
+#     x_train = x_train[train_mask]
+#     y_train = np.array([label_map[y] for y in y_train[train_mask]], dtype=np.int32)
+#     x_test  = x_test[test_mask]
+#     y_test  = np.array([label_map[y] for y in y_test[test_mask]],  dtype=np.int32)
+
+#     return x_train, y_train, x_test, y_test
+
 def load_dataset(
     dataset_id: str,
     selected_classes: List[int],
     task: str,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Load and filter a dataset to the selected classes.
 
-    Returns:
-        x_train, y_train, x_test, y_test
-        y labels are remapped to 0..N-1 for the selected classes.
-    """
     dataset_id = dataset_id.lower()
 
-    if dataset_id == "mnist":
-        from tensorflow.keras.datasets import mnist  # type: ignore
-        (x_train, y_train), (x_test, y_test) = mnist.load_data()
-        # Add channel dim → (N, 28, 28, 1)
-        x_train = x_train[..., np.newaxis].astype(np.float32) / 255.0
-        x_test  = x_test[...,  np.newaxis].astype(np.float32) / 255.0
-    else:
+    if dataset_id != "mnist":
         raise ValueError(f"Unsupported dataset: {dataset_id}")
 
-    # ── Filter to selected classes ────────────────────────────
+    from tensorflow.keras.datasets import mnist
+
+    # Load original MNIST as uint8.
+    # This is much smaller than immediately converting
+    # all 60,000 images to float32.
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
     selected = sorted(selected_classes)
-    label_map = {orig: new for new, orig in enumerate(selected)}
+
+    if not selected:
+        raise ValueError("At least one class must be selected.")
+
+    label_map = {
+        orig: new
+        for new, orig in enumerate(selected)
+    }
+
+    # ── Filter BEFORE converting to float32 ────────────────
 
     train_mask = np.isin(y_train, selected)
-    test_mask  = np.isin(y_test,  selected)
+    test_mask = np.isin(y_test, selected)
 
     x_train = x_train[train_mask]
-    y_train = np.array([label_map[y] for y in y_train[train_mask]], dtype=np.int32)
-    x_test  = x_test[test_mask]
-    y_test  = np.array([label_map[y] for y in y_test[test_mask]],  dtype=np.int32)
+    y_train = y_train[train_mask]
 
-    return x_train, y_train, x_test, y_test
+    x_test = x_test[test_mask]
+    y_test = y_test[test_mask]
+
+    # ── Remap labels ───────────────────────────────────────
+
+    y_train = np.array(
+        [label_map[int(y)] for y in y_train],
+        dtype=np.int32,
+    )
+
+    y_test = np.array(
+        [label_map[int(y)] for y in y_test],
+        dtype=np.int32,
+    )
+
+    # ── Normalize only the selected data ───────────────────
+
+    x_train = (
+        x_train[..., np.newaxis]
+        .astype(np.float32)
+        / 255.0
+    )
+
+    x_test = (
+        x_test[..., np.newaxis]
+        .astype(np.float32)
+        / 255.0
+    )
+
+    return (
+        x_train,
+        y_train,
+        x_test,
+        y_test,
+    )

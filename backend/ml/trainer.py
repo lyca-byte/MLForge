@@ -6,6 +6,12 @@ Each job is identified by a UUID and its progress is polled by the frontend.
 
 from __future__ import annotations
 
+import os
+
+# Keep TensorFlow thread usage small for low-memory deployment.
+os.environ.setdefault("TF_NUM_INTRAOP_THREADS", "1")
+os.environ.setdefault("TF_NUM_INTEROP_THREADS", "1")
+
 import threading
 import uuid
 import time
@@ -15,6 +21,12 @@ import json
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+
+try:
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+except RuntimeError:
+    pass
 
 from pathlib import Path
 

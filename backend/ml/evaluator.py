@@ -33,7 +33,8 @@ def evaluate_model(
     task = ds_cfg.get("task", "multiclass")
 
     # Get predictions
-    raw_preds = model.predict(x_test, verbose=0)
+    # raw_preds = model.predict(x_test, verbose=0)
+    raw_preds = model.predict(x_test, batch_size=32, verbose=0,)
 
     if task == "binary":
         # sigmoid output → threshold at 0.5; ensure 1-D array even for single sample

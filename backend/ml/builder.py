@@ -12,7 +12,8 @@ import tensorflow as tf
 from tensorflow import keras
 
 # Maximum allowed parameter count to prevent runaway builds
-MAX_PARAMS = 5_000_000
+# MAX_PARAMS = 5_000_000
+MAX_PARAMS = 2_000_000
 
 SUPPORTED_LAYERS = {
     "Conv2D", "MaxPooling2D", "AveragePooling2D",
