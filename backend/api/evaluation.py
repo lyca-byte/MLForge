@@ -4,7 +4,8 @@ Returns evaluation results for a completed job.
 """
 
 from fastapi import APIRouter, HTTPException
-from ml.trainer import get_job
+# from ml.trainer import get_job
+from backend.ml.trainer import get_job
 
 router = APIRouter()
 

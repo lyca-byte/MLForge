@@ -16,18 +16,32 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from ml.datasets import load_dataset
-from ml.builder  import build_model, validate_config, get_model_info
-from ml.evaluator import evaluate_model
+from pathlib import Path
+
+# from ml.datasets import load_dataset
+# from ml.builder  import build_model, validate_config, get_model_info
+# from ml.evaluator import evaluate_model
+
+from backend.ml.datasets import load_dataset
+from backend.ml.builder import build_model, validate_config, get_model_info
+from backend.ml.evaluator import evaluate_model
 
 logger = logging.getLogger("mlforge.trainer")
+
+# Root directory project MLForge
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+# Directory untuk menyimpan model hasil training
+MODEL_DIR = BASE_DIR / "models"
+MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── In-memory job store ───────────────────────────────────────
 # Maps job_id → job dict
 _JOBS: Dict[str, Dict[str, Any]] = {}
 
 # Limit concurrent jobs (free resource constraint)
-MAX_CONCURRENT_JOBS = 2
+# MAX_CONCURRENT_JOBS = 2
+MAX_CONCURRENT_JOBS = 1
 
 
 def _get_active_count() -> int:

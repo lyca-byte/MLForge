@@ -13,8 +13,11 @@ import os
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, Response
 
-from ml.trainer  import get_job
-from ml.exporter import export_tflite, get_keras_path
+# from ml.trainer  import get_job
+# from ml.exporter import export_tflite, get_keras_path
+
+from backend.ml.trainer import get_job
+from backend.ml.exporter import export_tflite, get_keras_path
 
 router = APIRouter()
 logger = logging.getLogger("mlforge.export")

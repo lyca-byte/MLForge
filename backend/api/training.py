@@ -10,8 +10,10 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from ml.builder import validate_config
-from ml.trainer import create_job, get_job, cancel_job
+# from ml.builder import validate_config
+# from ml.trainer import create_job, get_job, cancel_job
+from backend.ml.builder import validate_config
+from backend.ml.trainer import create_job, get_job, cancel_job
 
 router = APIRouter()
 

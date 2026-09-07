@@ -12,11 +12,18 @@ from typing import Tuple
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+from pathlib import Path
 
 logger = logging.getLogger("mlforge.exporter")
 
+BASE_DIR = Path(__file__).resolve().parents[2]
+MODEL_DIR = BASE_DIR / "models"
 
-def get_keras_path(job_id: str) -> str:
+
+# def get_keras_path(job_id: str) -> str:
+#     return f"models/{job_id}.keras"
+
+def get_keras_path(job_id):
     return f"models/{job_id}.keras"
 
 

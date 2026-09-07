@@ -39,7 +39,9 @@ MLForge.resetState = function() {
 };
 
 // ── API base ──────────────────────────────────────────────────
-MLForge.API_BASE = 'http://localhost:8000';
+// MLForge.API_BASE = 'http://localhost:8000';
+MLForge.API_BASE =
+    window.MLForgeConfig?.API_BASE || 'http://localhost:8000';
 
 MLForge.api = async function(method, path, body, opts = {}) {
   const url = MLForge.API_BASE + path;

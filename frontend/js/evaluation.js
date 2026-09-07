@@ -7,7 +7,8 @@
   const state = MLForge.state;
   const job   = state.job;
 
-  if (!job?.status === 'completed' && !job?.metrics) {
+  // if (!job?.status === 'completed' && !job?.metrics) {
+  if (job?.status !== 'completed' || !job?.metrics) {
     document.getElementById('no-results').style.display = 'flex';
     document.getElementById('eval-content').style.display = 'none';
     return;

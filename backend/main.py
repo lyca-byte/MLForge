@@ -9,11 +9,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from api.dataset    import router as dataset_router
-from api.training   import router as training_router
-from api.evaluation import router as evaluation_router
-from api.prediction import router as prediction_router
-from api.export     import router as export_router
+# from api.dataset    import router as dataset_router
+# from api.training   import router as training_router
+# from api.evaluation import router as evaluation_router
+# from api.prediction import router as prediction_router
+# from api.export     import router as export_router
+
+from backend.api.dataset import router as dataset_router
+from backend.api.training import router as training_router
+from backend.api.evaluation import router as evaluation_router
+from backend.api.prediction import router as prediction_router
+from backend.api.export import router as export_router
 
 # ── Logging ────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -27,13 +33,26 @@ app = FastAPI(
 )
 
 # ── CORS — allow frontend dev server / file:// ─────────────────
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+    "https://ml-forge-eta.vercel.app",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 # ── Routers ────────────────────────────────────────────────────
 app.include_router(dataset_router,    prefix="/api/dataset",    tags=["Dataset"])

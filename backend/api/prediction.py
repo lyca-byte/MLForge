@@ -13,7 +13,8 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from PIL import Image
 from tensorflow import keras
 
-from ml.trainer import get_job
+# from ml.trainer import get_job
+from backend.ml.trainer import get_job
 
 router  = APIRouter()
 logger  = logging.getLogger("mlforge.prediction")

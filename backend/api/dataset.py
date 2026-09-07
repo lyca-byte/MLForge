@@ -4,7 +4,8 @@ Dataset metadata endpoints.
 """
 
 from fastapi import APIRouter, HTTPException
-from ml.datasets import DATASET_REGISTRY, get_dataset_info
+# from ml.datasets import DATASET_REGISTRY, get_dataset_info
+from backend.ml.datasets import DATASET_REGISTRY, get_dataset_info
 
 router = APIRouter()
 
