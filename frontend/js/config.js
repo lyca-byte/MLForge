@@ -1,3 +1,3 @@
 window.MLForgeConfig = {
-    API_BASE: 'https://YOUR-BACKEND.onrender.com'
-};
+    API_BASE: 'https://mlforge-3487067e.fastapicloud.dev/'//isi dengan FastAPI Cloud
+}; 
