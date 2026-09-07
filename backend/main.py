@@ -52,8 +52,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
 # ── Routers ────────────────────────────────────────────────────
 app.include_router(dataset_router,    prefix="/api/dataset",    tags=["Dataset"])
 app.include_router(training_router,   prefix="/api/training",   tags=["Training"])
@@ -62,7 +60,10 @@ app.include_router(prediction_router, prefix="/api/prediction", tags=["Predictio
 app.include_router(export_router,     prefix="/api/export",     tags=["Export"])
 
 # ── Serve model artefacts (for internal API use only, no path leak) ─
-os.makedirs("models", exist_ok=True)
+# os.makedirs("models", exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parents[1]
+MODEL_DIR = BASE_DIR / "models"
+MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 @app.get("/health")
 async def health():

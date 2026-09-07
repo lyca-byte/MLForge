@@ -12,6 +12,7 @@ import numpy as np
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from PIL import Image
 from tensorflow import keras
+from pathlib import Path
 
 # from ml.trainer import get_job
 from backend.ml.trainer import get_job
@@ -22,16 +23,63 @@ logger  = logging.getLogger("mlforge.prediction")
 # Cache loaded models to avoid re-loading on every request
 _MODEL_CACHE: dict = {}
 
+# def _load_model(job_id: str) -> keras.Model:
+#     if job_id not in _MODEL_CACHE:
+#         import os
+#         path = f"models/{job_id}.keras"
+#         if not os.path.exists(path):
+#             raise FileNotFoundError(f"Model file not found for job {job_id}.")
+#         _MODEL_CACHE[job_id] = keras.models.load_model(path)
+#     return _MODEL_CACHE[job_id]
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+MODEL_DIR = BASE_DIR / "models"
+
+def get_job_dir(job_id: str) -> Path:
+    return MODEL_DIR / job_id
+
+# def _load_model(job_id: str) -> keras.Model:
+#     if job_id not in _MODEL_CACHE:
+
+#         model_path = get_job_dir(job_id) / "model.keras"
+
+#         if not model_path.exists():
+#             raise FileNotFoundError(
+#                 f"Model file not found for job {job_id}."
+#             )
+
+#         logger.info(
+#             "Loading model for job %s from %s",
+#             job_id,
+#             model_path,
+#         )
+
+#         _MODEL_CACHE[job_id] = keras.models.load_model(
+#             str(model_path)
+#         )
+
+#     return _MODEL_CACHE[job_id]
 
 def _load_model(job_id: str) -> keras.Model:
-    if job_id not in _MODEL_CACHE:
-        import os
-        path = f"models/{job_id}.keras"
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"Model file not found for job {job_id}.")
-        _MODEL_CACHE[job_id] = keras.models.load_model(path)
-    return _MODEL_CACHE[job_id]
 
+    if job_id not in _MODEL_CACHE:
+        model_path = get_job_dir(job_id) / "model.keras"
+        if not model_path.exists():
+            raise FileNotFoundError(
+                f"Model file not found for job {job_id}."
+            )
+
+        logger.info(
+            "Loading model for job %s from %s",
+            job_id,
+            model_path,
+        )
+
+        _MODEL_CACHE[job_id] = keras.models.load_model(
+            str(model_path)
+        )
+
+    return _MODEL_CACHE[job_id]
 
 def _preprocess_image(
     image_bytes: bytes,
