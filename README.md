@@ -1,5 +1,4 @@
 # MLForge
-
 <p align="center">
   <b>Learn. Build. Train. Understand. — No Code Required.</b>
 </p>
@@ -20,13 +19,13 @@
 
 ---
 
-## 🌐 Live Demo
+## Live Demo
 
-> 🚀 **Visit [Website](https://ml-forge-eta.vercel.app/)**
+> **Visit [Website](https://ml-forge-eta.vercel.app/)**
 
 ---
 
-# 📖 About MLForge
+# About MLForge
 
 **MLForge** is a web-based **No-Code Machine Learning Learning Platform** designed to help beginners understand and experiment with Machine Learning without requiring them to write Machine Learning code manually.
 
@@ -67,12 +66,10 @@ Export Model
 
 ---
 
-# 🎓 Capstone Project
-
+# Capstone Project
 This project was developed as a **Capstone Design Project** for:
 
 ## IBM SkillsBuild University Education × Hacktiv8
-
 ### Course
 
 **IT-AI Agent for Programming**
@@ -114,10 +111,8 @@ End User
 
 ---
 
-# 🎯 Problem Statement
-
+# Problem Statement
 Learning Machine Learning can be challenging for beginners because it often requires knowledge of:
-
 * Programming
 * Python
 * Machine Learning libraries
@@ -134,12 +129,10 @@ MLForge aims to address this problem by providing a visual and beginner-friendly
 
 ---
 
-# 💡 Solution
-
+# Solution
 MLForge provides a web-based visual interface that allows users to configure and experiment with Machine Learning models through a structured workflow.
 
 Users can:
-
 1. Select a dataset.
 2. Select classification classes.
 3. Build a neural network architecture.
@@ -154,12 +147,9 @@ The platform is designed to make Machine Learning experimentation more accessibl
 
 ---
 
-# ✨ Features
-
-## 🏠 Home
-
+# Features
+## Home
 The Home page introduces:
-
 * MLForge platform
 * Platform objectives
 * Machine Learning workflow
@@ -168,36 +158,28 @@ The Home page introduces:
 
 ---
 
-## 📊 Dataset Selection
-
+## Dataset Selection
 Users can select datasets for Machine Learning experiments.
-
 The current implementation focuses on:
 
 ### MNIST Dataset
-
 MLForge supports image classification using the MNIST dataset.
 
 Users can configure classification as:
 
 ### Binary Classification
-
 Example:
-
 ```text
 Class 0 vs Class 1
 ```
 
 or:
-
 ```text
 Class 3 vs Class 8
 ```
 
 ### Multiclass Classification
-
 Example:
-
 ```text
 Class 0
 Class 1
@@ -211,14 +193,12 @@ The number of output classes is determined based on the user's dataset configura
 
 ---
 
-## 🧠 No-Code Model Builder
-
+## No-Code Model Builder
 MLForge provides a visual interface for building neural network architectures.
 
 Users can configure layers without writing TensorFlow or Keras code manually.
 
 Supported layers include:
-
 * Conv2D
 * MaxPooling2D
 * AveragePooling2D
@@ -228,7 +208,6 @@ Supported layers include:
 * BatchNormalization
 
 Users can:
-
 * Add layers
 * Remove layers
 * Configure layer parameters
@@ -236,7 +215,6 @@ Users can:
 * Customize model configuration
 
 Example architecture:
-
 ```text
 Input
   │
@@ -262,7 +240,6 @@ Output
 The frontend sends the model configuration to the backend using structured data.
 
 Example:
-
 ```json
 {
   "layers": [
@@ -290,12 +267,10 @@ Example:
 
 ---
 
-## ⚙️ Training Configuration
-
+##  Training Configuration
 Users can configure Machine Learning hyperparameters.
 
 Available configurations include:
-
 * Epochs
 * Batch Size
 * Learning Rate
@@ -303,25 +278,22 @@ Available configurations include:
 * Validation Split
 
 Supported optimizers include:
-
 * Adam
 * SGD
 * RMSprop
 
 Supported activation functions include:
-
 * ReLU
 * Sigmoid
 * Tanh
 
 ---
 
-## 🚀 Model Training
+## Model Training
 
 MLForge provides a web-based Machine Learning training workflow.
 
 The frontend sends:
-
 * Dataset configuration
 * Selected classes
 * Model architecture
@@ -331,7 +303,6 @@ The frontend sends:
 to the backend.
 
 The backend handles:
-
 ```text
 Load Dataset
       ↓
@@ -352,12 +323,11 @@ Machine Learning operations are handled by the backend rather than requiring use
 
 ---
 
-## 📈 Training Progress
+## Training Progress
 
 MLForge provides training information during the Machine Learning workflow.
 
 Training information may include:
-
 * Current Epoch
 * Total Epoch
 * Training Loss
@@ -366,7 +336,6 @@ Training information may include:
 * Validation Accuracy
 
 Training status includes:
-
 ```text
 Queued
    ↓
@@ -376,33 +345,27 @@ Completed
 ```
 
 or:
-
 ```text
 Failed
 ```
 
 ---
 
-## 📉 Training Visualization
+## Training Visualization
 
 MLForge provides visualization of training performance.
 
 ### Accuracy Curve
-
 Displays:
-
 * Training Accuracy
 * Validation Accuracy
 
 ### Loss Curve
-
 Displays:
-
 * Training Loss
 * Validation Loss
 
 The visualization helps users understand:
-
 * Learning progress
 * Overfitting
 * Underfitting
@@ -411,32 +374,27 @@ The visualization helps users understand:
 
 ---
 
-## 📊 Model Evaluation
-
+## Model Evaluation
 MLForge provides Machine Learning evaluation results.
 
 Evaluation metrics include:
-
 * Accuracy
 * Precision
 * Recall
 * F1 Score
 
 The platform can also display:
-
 * Confusion Matrix
 
 These metrics help users understand how well their Machine Learning model performs.
 
 ---
 
-## 🔍 Prediction
-
+## Prediction
 Users can test trained models through image prediction.
 
 The workflow is:
-
-```text
+``text
 Upload Image
       ↓
 Image Processing
@@ -449,24 +407,20 @@ Result
 ```
 
 Prediction results may include:
-
 * Predicted Class
 * Confidence Score
 * Class Probabilities
 
 ---
 
-## 📦 Model Export
-
+## Model Export
 MLForge supports exporting trained Machine Learning models.
 
 Supported formats include:
-
 * `.keras`
 * `.tflite`
 
 Additional exported information may include:
-
 * Model Architecture
 * Training History
 * Evaluation Results
@@ -475,8 +429,7 @@ TensorFlow Lite export provides a possible path for deploying trained models to 
 
 ---
 
-# 🏗️ System Architecture
-
+# System Architecture
 MLForge uses a frontend and backend architecture.
 
 ```text
@@ -520,10 +473,8 @@ MLForge uses a frontend and backend architecture.
 
 ---
 
-# 🧩 MLForge Workflow
-
+# MLForge Workflow
 The MLForge workflow is designed as a step-by-step Machine Learning learning experience.
-
 ```text
 ┌─────────────────┐
 │   1. Dataset    │
@@ -563,8 +514,7 @@ The MLForge workflow is designed as a step-by-step Machine Learning learning exp
 
 ---
 
-# 📁 Project Structure
-
+# Project Structure
 ```text
 MLForge/
 │
@@ -619,38 +569,32 @@ MLForge/
 
 ---
 
-# 🛠️ Technology Stack
-
+# Technology Stack
 ## Frontend
-
 * HTML5
 * CSS3
 * JavaScript
 
 ## Backend
-
 * Python
 * FastAPI
 
 ## Machine Learning
-
 * TensorFlow
 * Keras
 
 ## Development
-
 * Visual Studio Code
 * Git
 * GitHub
 * IBM Bob
 
 ## Deployment
-
 * Vercel
 
 ---
 
-# 🤖 AI-Assisted Development with IBM Bob
+# AI-Assisted Development with IBM Bob
 
 MLForge was developed using an AI-assisted programming workflow.
 
@@ -690,7 +634,6 @@ MLForge
 ```
 
 The project followed an iterative development approach.
-
 The development cycle included:
 
 ```text
@@ -716,12 +659,10 @@ Refine
 
 ---
 
-# 🎓 Educational Objectives
-
+# Educational Objectives
 MLForge is designed to help beginners understand the Machine Learning development process.
 
 Users can learn about:
-
 * Dataset selection
 * Binary classification
 * Multiclass classification
@@ -746,12 +687,10 @@ The platform emphasizes experimentation and understanding.
 
 ---
 
-# ⚠️ Responsible AI
-
+# Responsible AI
 MLForge is designed for educational and experimental purposes.
 
 Users should understand that:
-
 * Model performance depends on the dataset.
 * Model performance depends on the selected architecture.
 * Hyperparameters affect training results.
@@ -764,32 +703,26 @@ MLForge is not intended to replace professional Machine Learning validation or p
 
 ---
 
-# 🚀 Getting Started
-
+# Getting Started
 ## 1. Clone the Repository
-
 ```bash
 git clone https://github.com/YOUR-USERNAME/MLForge.git
 ```
 
 Move into the project directory:
-
 ```bash
 cd MLForge
 ```
 
 ---
 
-# 💻 Frontend
-
+# Frontend
 The frontend is located inside:
-
 ```text
 frontend/
 ```
 
 The frontend uses:
-
 * HTML
 * CSS
 * JavaScript
@@ -797,7 +730,6 @@ The frontend uses:
 Open the project using a local development server.
 
 For example, using VS Code:
-
 ```text
 Open frontend/index.html
 ```
@@ -807,15 +739,12 @@ You can also use a local development extension such as Live Server.
 ---
 
 # ⚙️ Backend Setup
-
 Move to the backend directory:
-
 ```bash
 cd backend
 ```
 
 Create a Python virtual environment:
-
 ```bash
 python -m venv venv
 ```
@@ -823,43 +752,36 @@ python -m venv venv
 Activate the virtual environment.
 
 ### Windows
-
 ```bash
 venv\Scripts\activate
 ```
 
 ### Linux / macOS
-
 ```bash
 source venv/bin/activate
 ```
 
 Install dependencies:
-
 ```bash
 pip install -r ../requirements.txt
 ```
 
 Run the FastAPI server:
-
 ```bash
 uvicorn main:app --reload
 ```
 
 The backend should be available at:
-
 ```text
 http://127.0.0.1:8000
 ```
 
 ---
 
-# 🌐 Deployment
-
+# Deployment
 The MLForge frontend can be deployed using **Vercel**.
 
 The deployment architecture is:
-
 ```text
                          USER
                            │
@@ -888,7 +810,6 @@ The deployment architecture is:
 ```
 
 ## Frontend Deployment
-
 1. Push the project to GitHub.
 2. Create a Vercel account.
 3. Import the MLForge GitHub repository.
@@ -902,10 +823,8 @@ frontend
 
 ---
 
-# 📌 Project Status
-
+# Project Status
 **Status: Active Development**
-
 MLForge is currently developed as:
 
 * Educational Machine Learning Platform
@@ -915,10 +834,8 @@ MLForge is currently developed as:
 
 ---
 
-# 🔮 Future Development
-
+# Future Development
 Future improvements may include:
-
 * Fashion-MNIST support
 * CIFAR-10 support
 * Additional datasets
@@ -933,66 +850,38 @@ Future improvements may include:
 * Hyperparameter optimization
 * Training queue management
 * Cloud model storage
-* ONNX export
-* Advanced TensorFlow Lite export
-* TinyML deployment workflow
-* Edge AI integration
 
 ---
 
-# 📜 License
-
+# License
 This project is currently developed for educational, portfolio, and Capstone Design purposes.
 
 A specific open-source license may be added in the future.
 
 ---
 
-# 👨‍💻 Author
-
-Developed by:
-
-**[Your Name]**
-
-Biomedical Engineering Graduate
-Machine Learning and Computer Vision Enthusiast
-
----
-
-# 🙏 Acknowledgment
-
+# Acknowledgment
 This project was developed as part of:
 
 ## IBM SkillsBuild University Education × Hacktiv8
-
 ### Course
-
 **IT-AI Agent for Programming**
-
 Special acknowledgment to:
-
-**IBM Bob**
-
-for supporting the AI-assisted programming and iterative development process used in the development of MLForge.
+**IBM Bob** for supporting the AI-assisted programming and iterative development process used in the development of MLForge.
 
 ---
 
-# ⭐ Support
-
-If you find this project interesting:
-
-⭐ Star the repository
-🐛 Report issues
-💡 Suggest improvements
+# Support
+If you find this project interesting:  
+- Star the repository  
+- Report issues  
+- Suggest improvements  
 
 ---
 
-<p align="center">
+<p align="center"> 
 
 ## MLForge
-
 ### Learn. Build. Train. Understand.
-
 **No Code Required.**
-
 </p>
